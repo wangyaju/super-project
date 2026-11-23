@@ -1,0 +1,269 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      name="description"
+      content="一个干净、无外部依赖的番茄钟：专注计时、任务清单与专注统计。"
+    />
+    <meta name="theme-color" content="#f6f1e9" />
+    <title>番茄钟</title>
+    <link
+      rel="icon"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='19' r='10' fill='%23e04f3a'/%3E%3Cpath d='M16 10.5c-1.8-2.2-4.2-2.9-6.2-2.4 1 1.4 2.1 2.4 3.7 2.8-1.8.3-3.2 1.2-4.2 2.5 2.3.5 4.3-.2 6.7-1.9 2.4 1.7 4.4 2.4 6.7 1.9-1-1.3-2.4-2.2-4.2-2.5 1.6-.4 2.7-1.4 3.7-2.8-2-.5-4.4.2-6.2 2.4Z' fill='%233d9a5f'/%3E%3C/svg%3E"
+    />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <a class="skip-link" href="#timer">跳到番茄钟</a>
+
+    <div class="page">
+      <header class="topbar">
+        <a class="brand" href="./" aria-label="番茄钟首页">
+          <svg class="brand-mark" viewBox="0 0 32 32" aria-hidden="true" focusable="false">
+            <circle cx="16" cy="19" r="10" fill="currentColor" />
+            <path
+              d="M16 10.5c-1.8-2.2-4.2-2.9-6.2-2.4 1 1.4 2.1 2.4 3.7 2.8-1.8.3-3.2 1.2-4.2 2.5 2.3.5 4.3-.2 6.7-1.9 2.4 1.7 4.4 2.4 6.7 1.9-1-1.3-2.4-2.2-4.2-2.5 1.6-.4 2.7-1.4 3.7-2.8-2-.5-4.4.2-6.2 2.4Z"
+              fill="#3d9a5f"
+            />
+            <path
+              d="M16 10.6c0-2.4.8-3.9 2.3-4.9"
+              stroke="#3d9a5f"
+              stroke-width="1.6"
+              stroke-linecap="round"
+              fill="none"
+            />
+          </svg>
+          <span class="brand-name">番茄钟</span>
+        </a>
+
+        <div class="topbar-actions">
+          <button
+            id="themeToggle"
+            class="icon-btn"
+            type="button"
+            aria-pressed="false"
+            aria-label="切换到深色主题"
+            title="切换主题"
+          >
+            <svg class="icon icon-sun" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+              <circle cx="12" cy="12" r="4" />
+              <path d="M12 2v2.2M12 19.8V22M4.9 4.9l1.6 1.6M17.5 17.5l1.6 1.6M2 12h2.2M19.8 12H22M4.9 19.1l1.6-1.6M17.5 6.5l1.6-1.6" />
+            </svg>
+            <svg class="icon icon-moon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+              <path d="M20.2 14.4A8.5 8.5 0 1 1 9.6 3.8a7 7 0 0 0 10.6 10.6Z" />
+            </svg>
+          </button>
+          <button id="openSettings" class="btn ghost small" type="button">
+            <svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+              <path d="M4 7h7M16 7h4M4 17h4M13 17h7" />
+              <circle cx="13" cy="7" r="2.2" />
+              <circle cx="9" cy="17" r="2.2" />
+            </svg>
+            设置
+          </button>
+        </div>
+      </header>
+
+      <main class="layout">
+        <h1 class="sr-only">番茄钟</h1>
+
+        <section id="timer" class="panel timer-card" aria-label="番茄钟计时器">
+          <div class="modes" role="group" aria-label="选择计时模式">
+            <button class="mode-tab" type="button" data-mode="focus" aria-pressed="true">
+              专注 <span class="mode-time">25′</span>
+            </button>
+            <button class="mode-tab" type="button" data-mode="shortBreak" aria-pressed="false">
+              短休息 <span class="mode-time">5′</span>
+            </button>
+            <button class="mode-tab" type="button" data-mode="longBreak" aria-pressed="false">
+              长休息 <span class="mode-time">15′</span>
+            </button>
+          </div>
+
+          <div class="clock-wrap">
+            <svg class="ring" viewBox="0 0 240 240" aria-hidden="true" focusable="false">
+              <circle class="ring-track" cx="120" cy="120" r="103" />
+              <circle id="ringValue" class="ring-value" cx="120" cy="120" r="103" />
+            </svg>
+            <div class="clock">
+              <span class="mode-name" id="modeLabel">专注</span>
+              <span class="time" id="timeDisplay" role="timer">25:00</span>
+              <span class="hint" id="phaseHint">准备好后，开始第一颗番茄</span>
+            </div>
+          </div>
+
+          <div class="cycle" id="cycleDots" role="img" aria-label="当前轮次进度"></div>
+
+          <div class="controls">
+            <button id="resetBtn" class="btn ghost" type="button" title="重置（R）">重置</button>
+            <button id="startBtn" class="btn primary" type="button" aria-label="开始计时">开始</button>
+            <button id="skipBtn" class="btn ghost" type="button" title="跳过（S）">跳过</button>
+          </div>
+
+          <p class="shortcuts">
+            <kbd>空格</kbd> 开始 / 暂停 <span aria-hidden="true">·</span>
+            <kbd>R</kbd> 重置 <span aria-hidden="true">·</span>
+            <kbd>S</kbd> 跳过
+          </p>
+        </section>
+
+        <div class="side">
+          <section class="panel tasks" aria-labelledby="tasksTitle">
+            <div class="panel-head">
+              <h2 id="tasksTitle">任务</h2>
+              <span class="panel-meta" id="taskSummary">0/0 已完成</span>
+            </div>
+
+            <form id="taskForm" class="task-form" autocomplete="off">
+              <div class="task-input-row">
+                <label class="sr-only" for="taskTitle">任务名称</label>
+                <input
+                  id="taskTitle"
+                  class="text-input"
+                  name="title"
+                  type="text"
+                  placeholder="今天要完成什么？"
+                  maxlength="80"
+                  required
+                />
+                <label class="sr-only" for="taskEstimate">预计番茄数</label>
+                <input
+                  id="taskEstimate"
+                  class="number-input"
+                  name="estimate"
+                  type="number"
+                  min="1"
+                  max="20"
+                  step="1"
+                  value="1"
+                  inputmode="numeric"
+                  title="预计番茄数"
+                />
+                <button class="btn primary small" type="submit">添加</button>
+              </div>
+            </form>
+
+            <p class="empty" id="taskEmpty">
+              还没有任务。添加一个，完成专注后会自动累计番茄数。
+            </p>
+            <ul class="task-list" id="taskList"></ul>
+          </section>
+
+          <section class="panel stats" aria-labelledby="statsTitle">
+            <div class="panel-head">
+              <h2 id="statsTitle">统计</h2>
+              <span class="panel-meta" id="statsTotal">累计 0 个番茄</span>
+            </div>
+
+            <div class="stat-grid">
+              <div class="stat">
+                <span class="stat-value" id="todaySessions">0</span>
+                <span class="stat-label">今日番茄</span>
+              </div>
+              <div class="stat">
+                <span class="stat-value" id="todayMinutes">0</span>
+                <span class="stat-label">专注分钟</span>
+              </div>
+            </div>
+
+            <h3 class="chart-title">最近 7 天</h3>
+            <div class="chart" id="weekChart" role="img" aria-label="最近 7 天专注番茄数"></div>
+          </section>
+        </div>
+      </main>
+
+      <footer class="footer">
+        <p>计时、任务与统计只保存在本机浏览器，不会上传任何数据。</p>
+      </footer>
+    </div>
+
+    <dialog id="settingsDialog" class="settings-dialog" aria-labelledby="settingsTitle">
+      <form id="settingsForm" class="settings-form">
+        <div class="dialog-head">
+          <h2 id="settingsTitle">设置</h2>
+          <button type="button" class="icon-btn" data-close aria-label="关闭设置" title="关闭">
+            <svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+              <path d="M6 6l12 12M18 6 6 18" />
+            </svg>
+          </button>
+        </div>
+
+        <div class="settings-grid">
+          <label class="field">
+            <span class="field-label">专注时长</span>
+            <span class="input-unit">
+              <input name="focusMinutes" type="number" min="1" max="120" step="1" inputmode="numeric" required />
+              <span>分钟</span>
+            </span>
+          </label>
+
+          <label class="field">
+            <span class="field-label">短休息</span>
+            <span class="input-unit">
+              <input name="shortBreakMinutes" type="number" min="1" max="60" step="1" inputmode="numeric" required />
+              <span>分钟</span>
+            </span>
+          </label>
+
+          <label class="field">
+            <span class="field-label">长休息</span>
+            <span class="input-unit">
+              <input name="longBreakMinutes" type="number" min="1" max="120" step="1" inputmode="numeric" required />
+              <span>分钟</span>
+            </span>
+          </label>
+
+          <label class="field">
+            <span class="field-label">长休息间隔</span>
+            <span class="input-unit">
+              <input name="longBreakInterval" type="number" min="2" max="12" step="1" inputmode="numeric" required />
+              <span>个番茄</span>
+            </span>
+          </label>
+
+          <div class="switch-field">
+            <label class="switch-label" for="autoStartBreaks">专注结束后自动开始休息</label>
+            <input class="switch" id="autoStartBreaks" name="autoStartBreaks" type="checkbox" role="switch" />
+          </div>
+
+          <div class="switch-field">
+            <label class="switch-label" for="autoStartFocus">休息结束后自动开始专注</label>
+            <input class="switch" id="autoStartFocus" name="autoStartFocus" type="checkbox" role="switch" />
+          </div>
+
+          <div class="switch-field">
+            <label class="switch-label" for="sound">阶段结束时播放提示音</label>
+            <input class="switch" id="sound" name="sound" type="checkbox" role="switch" />
+          </div>
+
+          <div class="switch-field">
+            <label class="switch-label" for="notifications">阶段结束时发送桌面通知</label>
+            <input class="switch" id="notifications" name="notifications" type="checkbox" role="switch" />
+          </div>
+
+          <label class="field field-wide">
+            <span class="field-label">主题</span>
+            <select name="theme" class="select-input">
+              <option value="system">跟随系统</option>
+              <option value="light">浅色</option>
+              <option value="dark">深色</option>
+            </select>
+          </label>
+        </div>
+
+        <div class="dialog-actions">
+          <button type="button" id="resetSettings" class="btn ghost small">恢复默认</button>
+          <span class="spacer"></span>
+          <button type="button" class="btn ghost" data-close>取消</button>
+          <button type="submit" class="btn primary">保存设置</button>
+        </div>
+      </form>
+    </dialog>
+
+    <div id="liveStatus" class="sr-only" role="status" aria-live="polite"></div>
+
+    <script type="module" src="js/app.js"></script>
+  </body>
+</html>
