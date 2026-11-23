@@ -62,7 +62,7 @@
 
 ### 1. 准备环境
 
-按照 [README 的开发环境](README.md#开发环境) 安装 Node.js、npm 和 Git。
+按照 README 的[技术栈](README.md#技术栈)与[开发环境](README.md#开发环境)安装 Node.js、Python、JDK 和 Git。
 
 ### 2. 创建分支
 
@@ -82,7 +82,7 @@
 
 - 保持改动聚焦，一个 PR 只解决一个问题，不混入无关的格式化或重构
 - 行为变化同步更新 README 和相关文档
-- 仓库当前尚未配置测试和 lint 工具。工具链就绪后，提交前请运行项目提供的测试和 lint 命令（例如 `npm test`、`npm run lint`）；在此之前，请至少手动验证改动，例如检查 Markdown 渲染、链接可访问性和功能可复现性
+- 仓库当前尚未配置测试和 lint 工具。工具链就绪后，提交前请运行对应语言的测试和 lint 命令（例如 Node.js 使用 `npm test`、`npm run lint`）；在此之前，请至少手动验证改动，例如检查 Markdown 渲染、链接可访问性和功能可复现性
 
 ### 4. 提交与推送
 

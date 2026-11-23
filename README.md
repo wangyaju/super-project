@@ -1,9 +1,11 @@
 # super-project
 
 [![Node.js](https://img.shields.io/badge/node-%E2%89%A522-5FA04E?logo=nodedotjs&logoColor=white)](https://nodejs.org/)
+[![Python](https://img.shields.io/badge/python-%E2%89%A53.12-3776AB?logo=python&logoColor=white)](https://www.python.org/)
+[![Java](https://img.shields.io/badge/java-%E2%89%A521-ED8B00?logo=openjdk&logoColor=white)](https://openjdk.org/)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
-super-project 是一个基于 Node.js 的项目骨架，用于验证和演示 super agent 在 GitHub 上的协作流程。仓库目前包含开发环境约定、共建指南、Git 忽略规则和开源许可证，应用代码会随 Issue 逐步补充。
+super-project 是一个多语言项目骨架，当前技术栈覆盖 Node.js、Python 和 Java，用于验证和演示 super agent 在 GitHub 上的协作流程。仓库目前包含开发环境约定、共建指南、Git 忽略规则和开源许可证，应用代码会随 Issue 逐步补充。
 
 ## 仓库内容
 
@@ -16,26 +18,46 @@ super-project 是一个基于 Node.js 的项目骨架，用于验证和演示 su
 | `LICENSE` | MIT 许可证 |
 | `.gitignore` | Node.js 项目的忽略规则 |
 
+## 技术栈
+
+项目采用多语言技术栈，当前约定如下：
+
+| 语言 | 运行时 | 版本要求 |
+| --- | --- | --- |
+| JavaScript | Node.js | 22 LTS 或更高版本 |
+| Python | CPython | 3.12 或更高版本 |
+| Java | JDK | 21 LTS 或更高版本 |
+
+其他语言可以按项目需要扩展。新增语言时，请同步补充运行时、版本要求和开发环境说明。
+
 ## 开发环境
 
-| 依赖 | 版本要求 | 说明 |
-| --- | --- | --- |
-| Node.js | 22 LTS 或更高版本 | 推荐使用当前 LTS 版本 |
-| npm | 10 或更高版本 | 随 Node.js 一并安装，也可以改用 pnpm |
-| Git | 2.40 或更高版本 | 克隆仓库与提交代码 |
+在开始开发前，安装上表中的运行时，以及以下工具：
+
+| 工具 | 说明 |
+| --- | --- |
+| npm | 随 Node.js 安装，也可以改用 pnpm |
+| pip | 通常随 Python 安装，可使用 venv 隔离依赖 |
+| Git | 克隆仓库与提交代码，建议 2.40 或更高版本 |
 
 可选工具：
 
 - nvm 或 nvm-windows：在多个 Node.js 版本之间切换
-- VS Code：安装 ESLint 和 Prettier 扩展，保持代码风格一致
+- pyenv 或 pyenv-win：在多个 Python 版本之间切换
+- [SDKMAN](https://sdkman.io/)：安装和切换多个 JDK 版本
+- VS Code：安装对应语言的扩展，保持代码风格一致
 
 在终端中执行以下命令确认环境：
 
 ```bash
 node -v
 npm -v
+python --version
+java -version
 git --version
 ```
+
+macOS 和部分 Linux 发行版中，Python 命令可能是 `python3`。
 
 ## 快速开始
 
