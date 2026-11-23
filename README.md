@@ -3,7 +3,7 @@
 [![Node.js](https://img.shields.io/badge/node-%E2%89%A522-5FA04E?logo=nodedotjs&logoColor=white)](https://nodejs.org/)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
-super-project 是一个基于 Node.js 的项目骨架，用于验证和演示 super agent 在 GitHub 上的协作流程。仓库目前包含开发环境约定、Git 忽略规则和开源许可证，应用代码会随 Issue 逐步补充。
+super-project 是一个基于 Node.js 的项目骨架，用于验证和演示 super agent 在 GitHub 上的协作流程。仓库目前包含开发环境约定、共建指南、Git 忽略规则和开源许可证，应用代码会随 Issue 逐步补充。
 
 ## 仓库内容
 
@@ -12,6 +12,7 @@ super-project 是一个基于 Node.js 的项目骨架，用于验证和演示 su
 | 文件 | 说明 |
 | --- | --- |
 | `README.md` | 项目说明、开发环境与协作约定 |
+| `CONTRIBUTING.md` | 共建指南：问题反馈、开发流程与评审规则 |
 | `LICENSE` | MIT 许可证 |
 | `.gitignore` | Node.js 项目的忽略规则 |
 
@@ -54,11 +55,11 @@ cd super-project
 
 ## 参与贡献
 
-欢迎通过 Issue 提出建议或反馈问题。提交 PR 前请确认：
+欢迎参与共建。提交 Issue 或 Pull Request 前，请阅读 [共建指南](CONTRIBUTING.md)，其中说明了问题反馈、分支命名、提交信息规范、PR 检查和评审流程。
 
-- 改动聚焦，一个 PR 只解决一个问题
-- 提交信息说明改动目的
-- 新增或修改的文档与代码保持一致
+- 缺陷和功能建议请通过 [Issues](https://github.com/wangyaju/super-project/issues) 提出
+- 代码和文档改动请通过 Pull Request 提交
+- 参与讨论时请遵守共建指南中的行为准则
 
 ## 许可证
 
@@ -66,5 +67,6 @@ cd super-project
 
 ## 相关链接
 
+- [共建指南](CONTRIBUTING.md)
 - [Issues](https://github.com/wangyaju/super-project/issues)
 - [Pull Requests](https://github.com/wangyaju/super-project/pulls)
