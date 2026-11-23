@@ -1,4 +1,4 @@
-// 番茄钟
+# 番茄钟
 
 一个零依赖、可直接在浏览器里运行的番茄钟：专注计时、任务清单和专注统计。界面适配手机与桌面，支持浅色/深色主题，所有数据只保存在浏览器本地。
 
@@ -51,6 +51,8 @@ pomodoro/
 │   ├── stats.js      # 按日归档的专注统计
 │   └── store.js      # localStorage 封装与内存兜底
 ├── tests/            # node:test 单元测试
+├── docs/screenshots/ # 界面截图
+├── package.json      # 启动与测试脚本
 └── server.mjs        # 零依赖本地静态服务器
 ```
 
