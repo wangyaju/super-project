@@ -1,2 +1,94 @@
 # super-project
-test for super agent
+
+[![Node.js](https://img.shields.io/badge/node-%E2%89%A522-5FA04E?logo=nodedotjs&logoColor=white)](https://nodejs.org/)
+[![Python](https://img.shields.io/badge/python-%E2%89%A53.12-3776AB?logo=python&logoColor=white)](https://www.python.org/)
+[![Java](https://img.shields.io/badge/java-%E2%89%A521-ED8B00?logo=openjdk&logoColor=white)](https://openjdk.org/)
+[![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+
+super-project 是一个多语言项目骨架，当前技术栈覆盖 Node.js、Python 和 Java，用于验证和演示 super agent 在 GitHub 上的协作流程。仓库目前包含开发环境约定、共建指南、Git 忽略规则和开源许可证，应用代码会随 Issue 逐步补充。
+
+## 仓库内容
+
+仓库目前只包含项目骨架，还没有应用代码和 `package.json`：
+
+| 文件 | 说明 |
+| --- | --- |
+| `README.md` | 项目说明、开发环境与协作约定 |
+| `CONTRIBUTING.md` | 共建指南：问题反馈、开发流程与评审规则 |
+| `LICENSE` | MIT 许可证 |
+| `.gitignore` | Node.js 项目的忽略规则 |
+
+## 技术栈
+
+项目采用多语言技术栈，当前约定如下：
+
+| 语言 | 运行时 | 版本要求 |
+| --- | --- | --- |
+| JavaScript | Node.js | 22 LTS 或更高版本 |
+| Python | CPython | 3.12 或更高版本 |
+| Java | JDK | 21 LTS 或更高版本 |
+
+其他语言可以按项目需要扩展。新增语言时，请同步补充运行时、版本要求和开发环境说明。
+
+## 开发环境
+
+在开始开发前，安装上表中的运行时，以及以下工具：
+
+| 工具 | 说明 |
+| --- | --- |
+| npm | 随 Node.js 安装，也可以改用 pnpm |
+| pip | 通常随 Python 安装，可使用 venv 隔离依赖 |
+| Git | 克隆仓库与提交代码，建议 2.40 或更高版本 |
+
+可选工具：
+
+- nvm 或 nvm-windows：在多个 Node.js 版本之间切换
+- pyenv 或 pyenv-win：在多个 Python 版本之间切换
+- [SDKMAN](https://sdkman.io/)：安装和切换多个 JDK 版本
+- VS Code：安装对应语言的扩展，保持代码风格一致
+
+在终端中执行以下命令确认环境：
+
+```bash
+node -v
+npm -v
+python --version
+java -version
+git --version
+```
+
+macOS 和部分 Linux 发行版中，Python 命令可能是 `python3`。
+
+## 快速开始
+
+```bash
+git clone https://github.com/wangyaju/super-project.git
+cd super-project
+```
+
+仓库暂无应用源码和依赖，克隆后即可阅读文档。应用代码加入后，安装依赖和启动项目的命令会补充到本节。
+
+## 协作流程
+
+1. 在 [Issues](https://github.com/wangyaju/super-project/issues) 中描述需求或问题。
+2. 从 `main` 创建分支，建议命名为 `feat/<主题>` 或 `fix/<主题>`。
+3. 提交变更并发起 Pull Request，在描述中关联对应的 Issue。
+4. 评审和检查通过后合并到 `main`。
+
+## 参与贡献
+
+欢迎参与共建。提交 Issue 或 Pull Request 前，请阅读 [共建指南](CONTRIBUTING.md)，其中说明了问题反馈、分支命名、提交信息规范、PR 检查和评审流程。
+
+- 缺陷和功能建议请通过 [Issues](https://github.com/wangyaju/super-project/issues) 提出
+- 代码和文档改动请通过 Pull Request 提交
+- 参与讨论时请遵守共建指南中的行为准则
+
+## 许可证
+
+本项目基于 [MIT License](LICENSE) 开源，Copyright (c) 2026 wangyaju。
+
+## 相关链接
+
+- [共建指南](CONTRIBUTING.md)
+- [Issues](https://github.com/wangyaju/super-project/issues)
+- [Pull Requests](https://github.com/wangyaju/super-project/pulls)
