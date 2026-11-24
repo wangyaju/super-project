@@ -1,6 +1,8 @@
 import { PomodoroEngine, MODE_LABELS, formatClock } from './timer.js';
 import {
   DEFAULT_SETTINGS,
+  THEME_LABELS,
+  THEMES,
   normalizeSettings,
   clampInteger,
 } from './settings.js';
@@ -46,6 +48,9 @@ const el = {
   skipBtn: document.querySelector('#skipBtn'),
   modeTabs: document.querySelectorAll('.mode-tab'),
   themeToggle: document.querySelector('#themeToggle'),
+  themeMenuToggle: document.querySelector('#themeMenuToggle'),
+  themeMenu: document.querySelector('#themeMenu'),
+  themeOptions: document.querySelector('#themeOptions'),
   openSettings: document.querySelector('#openSettings'),
   settingsDialog: document.querySelector('#settingsDialog'),
   settingsForm: document.querySelector('#settingsForm'),
@@ -235,6 +240,14 @@ function plantSvg(kind) {
 /* 主题                                                                */
 /* ------------------------------------------------------------------ */
 
+const THEME_META_COLORS = {
+  light: '#f6f1e8',
+  dark: '#171412',
+  sakura: '#fbf1f2',
+  forest: '#eef4ea',
+  ocean: '#edf3f6',
+};
+
 function resolvedTheme() {
   if (settings.theme === 'system') return darkQuery.matches ? 'dark' : 'light';
   return settings.theme;
@@ -243,10 +256,11 @@ function resolvedTheme() {
 function applyTheme() {
   const theme = resolvedTheme();
   document.documentElement.dataset.theme = theme;
-  document.documentElement.style.colorScheme = theme;
+  document.documentElement.style.colorScheme = theme === 'dark' ? 'dark' : 'light';
   const themeColor = document.querySelector('meta[name="theme-color"]');
-  if (themeColor) themeColor.content = theme === 'dark' ? '#171412' : '#f6f1e9';
+  if (themeColor) themeColor.content = THEME_META_COLORS[theme] ?? THEME_META_COLORS.light;
   updateThemeButton();
+  updateThemeMenu();
 }
 
 function updateThemeButton() {
@@ -255,6 +269,77 @@ function updateThemeButton() {
   el.themeToggle.setAttribute('aria-label', label);
   el.themeToggle.setAttribute('title', label);
   el.themeToggle.setAttribute('aria-pressed', String(isDark));
+}
+
+function renderThemeOptions() {
+  const selectOptions = THEMES.map((theme) => {
+    const option = document.createElement('option');
+    option.value = theme;
+    option.textContent = THEME_LABELS[theme];
+    return option;
+  });
+  el.settingsForm.elements.theme.replaceChildren(...selectOptions);
+
+  const menuOptions = THEMES.map((theme) => {
+    const option = document.createElement('button');
+    option.type = 'button';
+    option.className = 'theme-option';
+    option.dataset.theme = theme;
+    option.setAttribute('role', 'menuitemradio');
+    option.setAttribute('aria-checked', 'false');
+
+    const swatch = document.createElement('span');
+    swatch.className = `theme-swatch is-${theme}`;
+    swatch.setAttribute('aria-hidden', 'true');
+
+    const label = document.createElement('span');
+    label.className = 'theme-option-label';
+    label.textContent = THEME_LABELS[theme];
+
+    const check = svgNode('svg', {
+      class: 'theme-check',
+      viewBox: '0 0 24 24',
+      'aria-hidden': 'true',
+      focusable: 'false',
+    });
+    check.append(svgNode('path', { d: 'M5 12.5l4.2 4.2L19 6.8' }));
+
+    option.append(swatch, label, check);
+    return option;
+  });
+  el.themeOptions.replaceChildren(...menuOptions);
+}
+
+function updateThemeMenu() {
+  const label = THEME_LABELS[settings.theme] ?? THEME_LABELS.system;
+  el.themeMenuToggle.setAttribute('aria-label', `主题：${label}，打开主题菜单`);
+  el.themeMenuToggle.title = `主题：${label}`;
+
+  for (const option of el.themeOptions.querySelectorAll('.theme-option')) {
+    option.setAttribute('aria-checked', String(option.dataset.theme === settings.theme));
+  }
+}
+
+function setThemeMenuOpen(open) {
+  el.themeMenu.hidden = !open;
+  el.themeMenuToggle.setAttribute('aria-expanded', String(open));
+  if (!open) return;
+
+  const selected = el.themeOptions.querySelector(
+    `.theme-option[data-theme="${settings.theme}"]`,
+  );
+  (selected ?? el.themeOptions.querySelector('.theme-option'))?.focus();
+}
+
+function chooseTheme(theme) {
+  setThemeMenuOpen(false);
+  el.themeMenuToggle.focus();
+  if (!THEMES.includes(theme) || theme === settings.theme) return;
+
+  settings.theme = theme;
+  persistSettings();
+  applyTheme();
+  announce(theme === 'system' ? '主题已跟随系统' : `已切换到${THEME_LABELS[theme]}主题`);
 }
 
 /* ------------------------------------------------------------------ */
@@ -877,6 +962,7 @@ function init() {
   el.ringValue.style.strokeDasharray = `${RING_CIRCUMFERENCE} ${RING_CIRCUMFERENCE}`;
   setRingFraction(1);
 
+  renderThemeOptions();
   fillSettingsForm(settings);
   applyTheme();
   renderAll();
@@ -898,6 +984,53 @@ function init() {
     persistSettings();
     applyTheme();
     announce(`已切换到${settings.theme === 'dark' ? '深色' : '浅色'}主题`);
+  });
+
+  el.themeMenuToggle.addEventListener('click', () => {
+    setThemeMenuOpen(el.themeMenu.hidden);
+  });
+
+  el.themeOptions.addEventListener('click', (event) => {
+    const option = event.target.closest('.theme-option');
+    if (option) chooseTheme(option.dataset.theme);
+  });
+
+  el.themeMenu.addEventListener('keydown', (event) => {
+    const options = [...el.themeOptions.querySelectorAll('.theme-option')];
+    const current = options.indexOf(document.activeElement);
+
+    if (event.key === 'Escape') {
+      event.preventDefault();
+      setThemeMenuOpen(false);
+      el.themeMenuToggle.focus();
+      return;
+    }
+
+    if (event.key === 'Tab') {
+      setThemeMenuOpen(false);
+      el.themeMenuToggle.focus();
+      return;
+    }
+
+    if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
+      event.preventDefault();
+      const step = event.key === 'ArrowDown' ? 1 : -1;
+      options[(current + step + options.length) % options.length]?.focus();
+    } else if (event.key === 'Home') {
+      event.preventDefault();
+      options[0]?.focus();
+    } else if (event.key === 'End') {
+      event.preventDefault();
+      options.at(-1)?.focus();
+    }
+  });
+
+  document.addEventListener('click', (event) => {
+    if (el.themeMenu.hidden) return;
+    if (el.themeMenu.contains(event.target) || el.themeMenuToggle.contains(event.target)) {
+      return;
+    }
+    setThemeMenuOpen(false);
   });
 
   darkQuery.addEventListener('change', () => {

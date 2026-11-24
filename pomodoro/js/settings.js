@@ -19,7 +19,17 @@ export const LIMITS = Object.freeze({
   longBreakInterval: { min: 2, max: 12 },
 });
 
-export const THEMES = ['system', 'light', 'dark'];
+export const THEMES = ['system', 'light', 'dark', 'sakura', 'forest', 'ocean'];
+
+/** 主题的展示名称，设置界面与顶栏主题菜单共用。 */
+export const THEME_LABELS = Object.freeze({
+  system: '跟随系统',
+  light: '浅色',
+  dark: '深色',
+  sakura: '樱花',
+  forest: '森林',
+  ocean: '海洋',
+});
 
 /** 将任意值截取为合法整数，非法值返回 fallback。 */
 export function clampInteger(value, min, max, fallback) {
