@@ -1,0 +1,14 @@
+{
+  "name": "pomodoro",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "一个零依赖、可离线使用的番茄钟 Web 应用",
+  "scripts": {
+    "start": "node server.mjs",
+    "test": "node --test"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
