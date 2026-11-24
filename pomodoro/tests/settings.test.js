@@ -4,6 +4,8 @@ import assert from 'node:assert/strict';
 import {
   DEFAULT_SETTINGS,
   LIMITS,
+  THEME_LABELS,
+  THEMES,
   normalizeSettings,
   clampInteger,
 } from '../js/settings.js';
@@ -69,6 +71,16 @@ test('布尔值与主题被归一化', () => {
   assert.equal(settings.theme, 'system');
 
   assert.equal(normalizeSettings({ theme: 'dark' }).theme, 'dark');
+});
+
+test('主题列表包含浅色、深色与三套配色', () => {
+  assert.deepEqual(THEMES, ['system', 'light', 'dark', 'sakura', 'forest', 'ocean']);
+
+  for (const theme of THEMES) {
+    assert.equal(typeof THEME_LABELS[theme], 'string');
+    assert.ok(THEME_LABELS[theme].length > 0);
+    assert.equal(normalizeSettings({ theme }).theme, theme);
+  }
 });
 
 test('clampInteger 的边界行为', () => {

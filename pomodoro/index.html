@@ -55,6 +55,30 @@
               <path d="M20.2 14.4A8.5 8.5 0 1 1 9.6 3.8a7 7 0 0 0 10.6 10.6Z" />
             </svg>
           </button>
+
+          <div class="theme-picker">
+            <button
+              id="themeMenuToggle"
+              class="icon-btn"
+              type="button"
+              aria-haspopup="true"
+              aria-expanded="false"
+              aria-controls="themeMenu"
+              aria-label="打开主题菜单"
+              title="更多主题"
+            >
+              <svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                <circle cx="9" cy="9" r="3.4" />
+                <circle cx="15" cy="9" r="3.4" />
+                <circle cx="12" cy="15" r="3.4" />
+              </svg>
+            </button>
+            <div id="themeMenu" class="theme-menu" role="menu" aria-label="主题" hidden>
+              <p class="theme-menu-heading" aria-hidden="true">主题</p>
+              <div id="themeOptions" class="theme-options" role="none"></div>
+            </div>
+          </div>
+
           <button id="openSettings" class="btn ghost small" type="button">
             <svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
               <path d="M4 7h7M16 7h4M4 17h4M13 17h7" />
@@ -70,6 +94,8 @@
         <h1 class="sr-only">番茄钟</h1>
 
         <section id="timer" class="panel timer-card" aria-label="番茄钟计时器">
+          <div class="confetti" id="confetti" aria-hidden="true"></div>
+
           <div class="modes" role="group" aria-label="选择计时模式">
             <button class="mode-tab" type="button" data-mode="focus" aria-pressed="true">
               专注 <span class="mode-time">25′</span>
@@ -90,8 +116,55 @@
             <div class="clock">
               <span class="mode-name" id="modeLabel">专注</span>
               <span class="time" id="timeDisplay" role="timer">25:00</span>
-              <span class="hint" id="phaseHint">准备好后，开始第一颗番茄</span>
             </div>
+          </div>
+
+          <div class="companion">
+            <svg class="mascot" viewBox="0 0 68 68" aria-hidden="true" focusable="false">
+              <ellipse class="mascot-shadow" cx="34" cy="61" rx="12" ry="2.6" />
+              <circle class="mascot-body" cx="34" cy="42" r="19" />
+              <ellipse class="mascot-shine" cx="27" cy="34" rx="5" ry="3.4" />
+              <path
+                class="mascot-leaf"
+                d="M34 20c-3.6-4.4-8.4-5.8-12.4-4.8 2 2.8 4.2 4.8 7.4 5.6-3.6.6-6.4 2.4-8.4 5 4.6 1 8.6-.4 13.4-3.8 4.8 3.4 8.8 4.8 13.4 3.8-2-2.6-4.8-4.4-8.4-5 3.2-.8 5.4-2.8 7.4-5.6-4-1-8.8.4-12.4 4.8Z"
+              />
+              <path class="mascot-stem" d="M34 20c0-3.4 1.2-5.6 3.4-7" />
+              <g class="mascot-cheeks">
+                <ellipse cx="23.5" cy="46" rx="2.6" ry="1.6" />
+                <ellipse cx="44.5" cy="46" rx="2.6" ry="1.6" />
+              </g>
+              <g class="mascot-eyes mascot-eyes-open">
+                <circle cx="27" cy="40" r="2.3" />
+                <circle cx="41" cy="40" r="2.3" />
+              </g>
+              <g class="mascot-eyes mascot-eyes-closed">
+                <path d="M24 40q3 2.6 6 0M38 40q3 2.6 6 0" />
+              </g>
+              <g class="mascot-eyes mascot-eyes-star">
+                <path
+                  d="M27 36.5l1 2.2 2.4.3-1.8 1.6.5 2.4-2.1-1.2-2.1 1.2.5-2.4-1.8-1.6 2.4-.3Z"
+                />
+                <path
+                  d="M41 36.5l1 2.2 2.4.3-1.8 1.6.5 2.4-2.1-1.2-2.1 1.2.5-2.4-1.8-1.6 2.4-.3Z"
+                />
+              </g>
+              <g class="mascot-brows">
+                <path d="M23 35.6l5-1.6M45 35.6l-5-1.6" />
+              </g>
+              <g class="mascot-mouth mascot-mouth-smile">
+                <path d="M30 47q4 3.4 8 0" />
+              </g>
+              <g class="mascot-mouth mascot-mouth-flat">
+                <path d="M30.5 47.5h7" />
+              </g>
+              <g class="mascot-mouth mascot-mouth-small">
+                <ellipse cx="34" cy="48" rx="2.1" ry="2.6" />
+              </g>
+              <g class="mascot-mouth mascot-mouth-big">
+                <path d="M27.5 46q6.5 8 13 0Z" />
+              </g>
+            </svg>
+            <span class="hint" id="phaseHint">准备好后，开始第一颗番茄</span>
           </div>
 
           <div class="cycle" id="cycleDots" role="img" aria-label="当前轮次进度"></div>
@@ -174,9 +247,44 @@
         </div>
       </main>
 
+      <section class="panel garden-panel" aria-labelledby="gardenTitle">
+        <div class="garden-head">
+          <div>
+            <h2 id="gardenTitle">我的小花园</h2>
+            <p class="garden-meta" id="gardenMeta">累计 0 颗番茄</p>
+          </div>
+          <span class="streak-chip" id="streakChip" hidden></span>
+        </div>
+
+        <div class="garden-body">
+          <div
+            class="mini-garden"
+            id="miniGarden"
+            role="img"
+            aria-label="小花园里还没有番茄"
+          ></div>
+
+          <div class="badge-box">
+            <div class="badge-head">
+              <h3>成就</h3>
+              <span class="panel-meta" id="badgeMeta">0/6</span>
+            </div>
+            <ul class="badge-list" id="badgeList"></ul>
+          </div>
+        </div>
+      </section>
+
       <footer class="footer">
         <p>计时、任务与统计只保存在本机浏览器，不会上传任何数据。</p>
       </footer>
+    </div>
+
+    <div id="harvestBanner" class="harvest-banner" aria-hidden="true">
+      <span class="harvest-icon" id="harvestIcon">🍅</span>
+      <span class="harvest-copy">
+        <strong id="harvestTitle">收获一颗番茄</strong>
+        <span id="harvestDetail"></span>
+      </span>
     </div>
 
     <dialog id="settingsDialog" class="settings-dialog" aria-labelledby="settingsTitle">
@@ -245,11 +353,7 @@
 
           <label class="field field-wide">
             <span class="field-label">主题</span>
-            <select name="theme" class="select-input">
-              <option value="system">跟随系统</option>
-              <option value="light">浅色</option>
-              <option value="dark">深色</option>
-            </select>
+            <select name="theme" class="select-input"></select>
           </label>
         </div>
 

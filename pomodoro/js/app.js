@@ -1,6 +1,8 @@
 import { PomodoroEngine, MODE_LABELS, formatClock } from './timer.js';
 import {
   DEFAULT_SETTINGS,
+  THEME_LABELS,
+  THEMES,
   normalizeSettings,
   clampInteger,
 } from './settings.js';
@@ -11,12 +13,23 @@ import {
   lastDays,
 } from './stats.js';
 import { getStorage, readJSON, writeJSON } from './store.js';
+import {
+  achievementStatus,
+  gardenSummary,
+  mascotMood,
+  normalizeDelight,
+  pickQuip,
+  statsSnapshot,
+} from './delight.js';
 
 const STORAGE_KEYS = {
   settings: 'pomodoro.settings.v1',
   stats: 'pomodoro.stats.v1',
   tasks: 'pomodoro.tasks.v1',
+  delight: 'pomodoro.delight.v1',
 };
+
+const SVG_NS = 'http://www.w3.org/2000/svg';
 
 const RING_RADIUS = 103;
 const RING_CIRCUMFERENCE = 2 * Math.PI * RING_RADIUS;
@@ -24,6 +37,7 @@ const WEEKDAY_LABELS = ['日', '一', '二', '三', '四', '五', '六'];
 
 /** @type {Record<string, HTMLElement>} */
 const el = {
+  timerCard: document.querySelector('#timer'),
   timeDisplay: document.querySelector('#timeDisplay'),
   modeLabel: document.querySelector('#modeLabel'),
   phaseHint: document.querySelector('#phaseHint'),
@@ -34,6 +48,9 @@ const el = {
   skipBtn: document.querySelector('#skipBtn'),
   modeTabs: document.querySelectorAll('.mode-tab'),
   themeToggle: document.querySelector('#themeToggle'),
+  themeMenuToggle: document.querySelector('#themeMenuToggle'),
+  themeMenu: document.querySelector('#themeMenu'),
+  themeOptions: document.querySelector('#themeOptions'),
   openSettings: document.querySelector('#openSettings'),
   settingsDialog: document.querySelector('#settingsDialog'),
   settingsForm: document.querySelector('#settingsForm'),
@@ -48,6 +65,16 @@ const el = {
   todayMinutes: document.querySelector('#todayMinutes'),
   statsTotal: document.querySelector('#statsTotal'),
   weekChart: document.querySelector('#weekChart'),
+  garden: document.querySelector('#miniGarden'),
+  gardenMeta: document.querySelector('#gardenMeta'),
+  streakChip: document.querySelector('#streakChip'),
+  badgeList: document.querySelector('#badgeList'),
+  badgeMeta: document.querySelector('#badgeMeta'),
+  confetti: document.querySelector('#confetti'),
+  harvestBanner: document.querySelector('#harvestBanner'),
+  harvestIcon: document.querySelector('#harvestIcon'),
+  harvestTitle: document.querySelector('#harvestTitle'),
+  harvestDetail: document.querySelector('#harvestDetail'),
   liveStatus: document.querySelector('#liveStatus'),
 };
 
@@ -57,6 +84,7 @@ const darkQuery = window.matchMedia('(prefers-color-scheme: dark)');
 let settings = normalizeSettings(readJSON(storage, STORAGE_KEYS.settings, DEFAULT_SETTINGS));
 let stats = normalizeStats(readJSON(storage, STORAGE_KEYS.stats, null));
 let tasks = normalizeTasks(readJSON(storage, STORAGE_KEYS.tasks, null));
+let delight = normalizeDelight(readJSON(storage, STORAGE_KEYS.delight, null));
 const engine = new PomodoroEngine({
   settings,
   totalFocusSessions: stats.totalFocusSessions,
@@ -65,24 +93,14 @@ const engine = new PomodoroEngine({
 let announceTimer = null;
 let audioContext = null;
 let notificationPrompted = false;
-
-const STATUS_HINTS = {
-  focus: {
-    idle: '准备好后，开始第一颗番茄',
-    running: '保持专注，一次只做一件事',
-    paused: '已暂停，按空格继续',
-  },
-  shortBreak: {
-    idle: '起来走走，喝口水',
-    running: '离开屏幕，让眼睛休息一下',
-    paused: '休息暂停中，按空格继续',
-  },
-  longBreak: {
-    idle: '完成一轮，好好放松',
-    running: '这一轮结束了，尽情休息',
-    paused: '长休息暂停中，按空格继续',
-  },
-};
+let lastHintKey = '';
+let lastCycleSignature = '';
+let lastGardenTotal = stats.totalFocusSessions;
+let celebrateUntil = 0;
+let celebrateTimer = null;
+let bannerTimer = null;
+const bannerQueue = [];
+const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
 
 /* ------------------------------------------------------------------ */
 /* 持久化                                                              */
@@ -98,6 +116,10 @@ function persistStats() {
 
 function persistTasks() {
   writeJSON(storage, STORAGE_KEYS.tasks, tasks);
+}
+
+function persistDelight() {
+  writeJSON(storage, STORAGE_KEYS.delight, delight);
 }
 
 /* ------------------------------------------------------------------ */
@@ -150,9 +172,81 @@ function normalizeTasks(value) {
   return { items, activeId };
 }
 
+function svgNode(tag, attributes = {}) {
+  const node = document.createElementNS(SVG_NS, tag);
+  for (const [name, value] of Object.entries(attributes)) node.setAttribute(name, value);
+  return node;
+}
+
+function tomatoIconSvg() {
+  const svg = svgNode('svg', { viewBox: '0 0 24 24', 'aria-hidden': 'true', focusable: 'false' });
+  svg.append(
+    svgNode('circle', { class: 'tomato-fruit', cx: '12', cy: '16', r: '7.2' }),
+    svgNode('path', {
+      class: 'tomato-leaf',
+      d: 'M12 8.6c-1.5-1.8-3.4-2.3-5-1.9.9 1.2 1.7 2 3 2.3-1.5.2-2.6 1-3.4 2 1.9.4 3.5-.2 5.4-1.6 1.9 1.4 3.5 2 5.4 1.6-.8-1-1.9-1.8-3.4-2 1.3-.3 2.1-1.1 3-2.3-1.6-.4-3.5.1-5 1.9Z',
+    }),
+  );
+  return svg;
+}
+
+function plantSvg(kind) {
+  const svg = svgNode('svg', { viewBox: '0 0 28 40', 'aria-hidden': 'true', focusable: 'false' });
+  svg.append(svgNode('path', { class: 'plant-stem', d: 'M14 36V18' }));
+
+  if (kind === 'flower') {
+    const petals = [
+      [14, 12.3],
+      [18, 15.3],
+      [16.5, 19.9],
+      [11.5, 19.9],
+      [10, 15.3],
+    ];
+    for (const [cx, cy] of petals) {
+      svg.append(svgNode('circle', { class: 'plant-flower', cx, cy, r: '3.2' }));
+    }
+    svg.append(svgNode('circle', { class: 'plant-flower-core', cx: '14', cy: '16.5', r: '2.4' }));
+  } else {
+    svg.append(
+      svgNode('circle', { class: 'plant-fruit', cx: '14', cy: '26', r: '6.4' }),
+      svgNode('circle', { class: 'plant-shine', cx: '11.2', cy: '23.4', r: '2' }),
+    );
+  }
+
+  svg.append(
+    svgNode('path', {
+      class: 'plant-leaf',
+      d: 'M14 24c-4 .2-6.8-1.1-8.2-3.6 3.6-.5 6.2.4 8.2 2.9Z',
+    }),
+    svgNode('path', {
+      class: 'plant-leaf',
+      d: 'M14 29c4 .2 6.8-1.1 8.2-3.6-3.6-.5-6.2.4-8.2 2.9Z',
+    }),
+  );
+
+  if (kind !== 'flower') {
+    svg.append(
+      svgNode('path', {
+        class: 'plant-leaf plant-leaf-top',
+        d: 'M14 21c-1.2-1.4-2.7-1.8-3.9-1.5.7.9 1.3 1.6 2.3 1.9-1.1.2-2 .8-2.7 1.6 1.5.3 2.8-.2 4.3-1.3 1.5 1.1 2.8 1.6 4.3 1.3-.7-.8-1.6-1.4-2.7-1.6 1-.3 1.6-1 2.3-1.9-1.2-.3-2.7.1-3.9 1.5Z',
+      }),
+    );
+  }
+
+  return svg;
+}
+
 /* ------------------------------------------------------------------ */
 /* 主题                                                                */
 /* ------------------------------------------------------------------ */
+
+const THEME_META_COLORS = {
+  light: '#f6f1e8',
+  dark: '#171412',
+  sakura: '#fbf1f2',
+  forest: '#eef4ea',
+  ocean: '#edf3f6',
+};
 
 function resolvedTheme() {
   if (settings.theme === 'system') return darkQuery.matches ? 'dark' : 'light';
@@ -162,10 +256,11 @@ function resolvedTheme() {
 function applyTheme() {
   const theme = resolvedTheme();
   document.documentElement.dataset.theme = theme;
-  document.documentElement.style.colorScheme = theme;
+  document.documentElement.style.colorScheme = theme === 'dark' ? 'dark' : 'light';
   const themeColor = document.querySelector('meta[name="theme-color"]');
-  if (themeColor) themeColor.content = theme === 'dark' ? '#171412' : '#f6f1e9';
+  if (themeColor) themeColor.content = THEME_META_COLORS[theme] ?? THEME_META_COLORS.light;
   updateThemeButton();
+  updateThemeMenu();
 }
 
 function updateThemeButton() {
@@ -174,6 +269,77 @@ function updateThemeButton() {
   el.themeToggle.setAttribute('aria-label', label);
   el.themeToggle.setAttribute('title', label);
   el.themeToggle.setAttribute('aria-pressed', String(isDark));
+}
+
+function renderThemeOptions() {
+  const selectOptions = THEMES.map((theme) => {
+    const option = document.createElement('option');
+    option.value = theme;
+    option.textContent = THEME_LABELS[theme];
+    return option;
+  });
+  el.settingsForm.elements.theme.replaceChildren(...selectOptions);
+
+  const menuOptions = THEMES.map((theme) => {
+    const option = document.createElement('button');
+    option.type = 'button';
+    option.className = 'theme-option';
+    option.dataset.theme = theme;
+    option.setAttribute('role', 'menuitemradio');
+    option.setAttribute('aria-checked', 'false');
+
+    const swatch = document.createElement('span');
+    swatch.className = `theme-swatch is-${theme}`;
+    swatch.setAttribute('aria-hidden', 'true');
+
+    const label = document.createElement('span');
+    label.className = 'theme-option-label';
+    label.textContent = THEME_LABELS[theme];
+
+    const check = svgNode('svg', {
+      class: 'theme-check',
+      viewBox: '0 0 24 24',
+      'aria-hidden': 'true',
+      focusable: 'false',
+    });
+    check.append(svgNode('path', { d: 'M5 12.5l4.2 4.2L19 6.8' }));
+
+    option.append(swatch, label, check);
+    return option;
+  });
+  el.themeOptions.replaceChildren(...menuOptions);
+}
+
+function updateThemeMenu() {
+  const label = THEME_LABELS[settings.theme] ?? THEME_LABELS.system;
+  el.themeMenuToggle.setAttribute('aria-label', `主题：${label}，打开主题菜单`);
+  el.themeMenuToggle.title = `主题：${label}`;
+
+  for (const option of el.themeOptions.querySelectorAll('.theme-option')) {
+    option.setAttribute('aria-checked', String(option.dataset.theme === settings.theme));
+  }
+}
+
+function setThemeMenuOpen(open) {
+  el.themeMenu.hidden = !open;
+  el.themeMenuToggle.setAttribute('aria-expanded', String(open));
+  if (!open) return;
+
+  const selected = el.themeOptions.querySelector(
+    `.theme-option[data-theme="${settings.theme}"]`,
+  );
+  (selected ?? el.themeOptions.querySelector('.theme-option'))?.focus();
+}
+
+function chooseTheme(theme) {
+  setThemeMenuOpen(false);
+  el.themeMenuToggle.focus();
+  if (!THEMES.includes(theme) || theme === settings.theme) return;
+
+  settings.theme = theme;
+  persistSettings();
+  applyTheme();
+  announce(theme === 'system' ? '主题已跟随系统' : `已切换到${THEME_LABELS[theme]}主题`);
 }
 
 /* ------------------------------------------------------------------ */
@@ -211,8 +377,14 @@ function renderTimer() {
         : `开始${MODE_LABELS[engine.mode]}`,
   );
 
-  el.phaseHint.textContent =
-    STATUS_HINTS[engine.mode][engine.status] ?? STATUS_HINTS[engine.mode].idle;
+  const mood = Date.now() < celebrateUntil ? 'party' : mascotMood(engine.mode, engine.status);
+  if (el.timerCard.dataset.mood !== mood) el.timerCard.dataset.mood = mood;
+
+  const hintKey = `${engine.mode}:${engine.status}`;
+  if (hintKey !== lastHintKey) {
+    lastHintKey = hintKey;
+    el.phaseHint.textContent = pickQuip(engine.mode, engine.status, stats.totalFocusSessions);
+  }
 
   for (const tab of el.modeTabs) {
     const mode = tab.dataset.mode;
@@ -234,14 +406,19 @@ function renderCycle() {
     filled = interval;
   }
 
-  const dots = [];
+  const signature = `${filled}:${interval}:${engine.totalFocusSessions}`;
+  if (signature === lastCycleSignature) return;
+  lastCycleSignature = signature;
+
+  const tomatoes = [];
   for (let index = 0; index < interval; index += 1) {
-    const dot = document.createElement('span');
-    dot.className = index < filled ? 'cycle-dot is-done' : 'cycle-dot';
-    dot.setAttribute('aria-hidden', 'true');
-    dots.push(dot);
+    const tomato = document.createElement('span');
+    tomato.className = index < filled ? 'cycle-tomato is-done' : 'cycle-tomato';
+    tomato.setAttribute('aria-hidden', 'true');
+    tomato.append(tomatoIconSvg());
+    tomatoes.push(tomato);
   }
-  el.cycleDots.replaceChildren(...dots);
+  el.cycleDots.replaceChildren(...tomatoes);
   el.cycleDots.setAttribute(
     'aria-label',
     `本轮已完成 ${filled} 个番茄，共 ${interval} 个`,
@@ -286,6 +463,8 @@ function handlePhaseComplete(event) {
       activeTask.sessions += 1;
       persistTasks();
     }
+
+    celebrateHarvest(event);
   }
 
   const title = event.from === 'focus' ? '专注完成' : '休息结束';
@@ -296,13 +475,88 @@ function handlePhaseComplete(event) {
 
   playChime();
   notify(title, body);
+
+  const { fresh } = renderAll({ announceAchievements: event.from === 'focus' });
+  const achievementNote = fresh.length
+    ? `，解锁成就：${fresh.map((item) => item.title).join('、')}`
+    : '';
   announce(
     event.from === 'focus'
-      ? `专注完成，进入${MODE_LABELS[event.to]}`
+      ? `专注完成，进入${MODE_LABELS[event.to]}${achievementNote}`
       : '休息结束，开始专注',
   );
+}
 
-  renderAll();
+/* ------------------------------------------------------------------ */
+/* 收获庆祝                                                            */
+/* ------------------------------------------------------------------ */
+
+function celebrateHarvest(event) {
+  celebrateUntil = Date.now() + 2400;
+  window.clearTimeout(celebrateTimer);
+  celebrateTimer = window.setTimeout(() => {
+    celebrateUntil = 0;
+    renderTimer();
+  }, 2400);
+
+  fireConfetti();
+
+  const today = todaySummary(stats);
+  queueBanner({
+    icon: '🍅',
+    title: '收获一颗番茄',
+    detail:
+      event.to === 'longBreak'
+        ? `一轮完成，今天第 ${today.sessions} 颗番茄`
+        : `今天第 ${today.sessions} 颗 · 花园累计 ${stats.totalFocusSessions} 颗`,
+  });
+}
+
+function fireConfetti() {
+  if (reduceMotion.matches) return;
+
+  const colors = ['#e04f3a', '#f2a03d', '#3d9a5f', '#e8c547', '#f6b8a8'];
+  const pieces = [];
+  for (let index = 0; index < 26; index += 1) {
+    const piece = document.createElement('i');
+    piece.className = 'confetti-piece';
+    piece.style.setProperty('--x', `${Math.random() * 100}%`);
+    piece.style.setProperty('--delay', `${Math.random() * 0.16}s`);
+    piece.style.setProperty('--duration', `${1.05 + Math.random() * 0.75}s`);
+    piece.style.setProperty('--drift', `${Math.round((Math.random() - 0.5) * 140)}px`);
+    piece.style.setProperty('--rotate', `${Math.round(Math.random() * 720 - 360)}deg`);
+    piece.style.setProperty('--size', `${6 + Math.random() * 6}px`);
+    piece.style.setProperty('--color', colors[index % colors.length]);
+    pieces.push(piece);
+  }
+
+  el.confetti.replaceChildren(...pieces);
+  window.setTimeout(() => el.confetti.replaceChildren(), 2400);
+}
+
+function queueBanner({ icon, title, detail }) {
+  bannerQueue.push({ icon, title, detail });
+  if (!bannerTimer) showNextBanner();
+}
+
+function showNextBanner() {
+  const next = bannerQueue.shift();
+  if (!next) {
+    el.harvestBanner.classList.remove('is-visible');
+    bannerTimer = null;
+    return;
+  }
+
+  el.harvestIcon.textContent = next.icon ?? '🍅';
+  el.harvestTitle.textContent = next.title;
+  el.harvestDetail.textContent = next.detail ?? '';
+  el.harvestDetail.hidden = !next.detail;
+  el.harvestBanner.classList.add('is-visible');
+
+  bannerTimer = window.setTimeout(() => {
+    el.harvestBanner.classList.remove('is-visible');
+    bannerTimer = window.setTimeout(showNextBanner, 260);
+  }, 2600);
 }
 
 /* ------------------------------------------------------------------ */
@@ -538,6 +792,108 @@ function renderStats() {
 }
 
 /* ------------------------------------------------------------------ */
+/* 花园与成就                                                          */
+/* ------------------------------------------------------------------ */
+
+function renderGarden() {
+  const summary = gardenSummary(stats.totalFocusSessions);
+  const today = todaySummary(stats);
+  const isNew = summary.total > lastGardenTotal;
+  lastGardenTotal = summary.total;
+
+  const plants = summary.plants.map((plant, index) => {
+    const item = document.createElement('span');
+    item.className = 'plant';
+    item.style.setProperty('--tilt', `${((plant.index % 5) - 2) * 1.8}deg`);
+    if (isNew && index === summary.plants.length - 1) item.classList.add('is-new');
+    item.append(plantSvg(plant.kind));
+    return item;
+  });
+
+  if (plants.length === 0) {
+    const empty = document.createElement('p');
+    empty.className = 'garden-empty';
+    empty.textContent = '完成一次专注，这里就会长出第一颗番茄。';
+    el.garden.replaceChildren(empty);
+    el.gardenMeta.textContent = '累计 0 颗番茄';
+    el.garden.setAttribute('aria-label', '小花园里还没有番茄');
+  } else {
+    el.garden.replaceChildren(...plants);
+    el.gardenMeta.textContent = `累计 ${summary.total} 颗 · 今天 ${today.sessions} 颗`;
+    const hiddenNote = summary.hidden > 0 ? `，更早的 ${summary.hidden} 颗已经收好` : '';
+    el.garden.setAttribute(
+      'aria-label',
+      `小花园：累计 ${summary.total} 颗番茄，今天收获 ${today.sessions} 颗${hiddenNote}`,
+    );
+  }
+
+  const snapshot = statsSnapshot(stats);
+  if (snapshot.currentStreak >= 2) {
+    el.streakChip.hidden = false;
+    el.streakChip.textContent = `🔥 连续 ${snapshot.currentStreak} 天`;
+    el.streakChip.title = `最长连续专注 ${snapshot.longestStreak} 天`;
+  } else if (snapshot.longestStreak >= 2) {
+    el.streakChip.hidden = false;
+    el.streakChip.textContent = `🔥 最长连续 ${snapshot.longestStreak} 天`;
+    el.streakChip.title = '今天完成一颗番茄，就能开启新的连击';
+  } else {
+    el.streakChip.hidden = true;
+  }
+}
+
+function renderBadges({ announce = false } = {}) {
+  const statuses = achievementStatus(stats);
+  const fresh = statuses.filter((item) => item.unlocked && !delight.seen.includes(item.id));
+
+  if (fresh.length > 0) {
+    delight.seen = [...delight.seen, ...fresh.map((item) => item.id)];
+    persistDelight();
+  }
+
+  const unlockedCount = statuses.filter((item) => item.unlocked).length;
+  el.badgeMeta.textContent = `${unlockedCount}/${statuses.length}`;
+
+  const nodes = statuses.map((item) => {
+    const badge = document.createElement('li');
+    badge.className = item.unlocked ? 'badge is-unlocked' : 'badge';
+    badge.title = item.unlocked
+      ? `${item.title}：${item.hint}`
+      : `${item.title}：${item.hint}（${item.value}/${item.target}）`;
+
+    const icon = document.createElement('span');
+    icon.className = 'badge-icon';
+    icon.textContent = item.icon;
+    icon.setAttribute('aria-hidden', 'true');
+
+    const copy = document.createElement('span');
+    copy.className = 'badge-copy';
+
+    const name = document.createElement('span');
+    name.className = 'badge-name';
+    name.textContent = item.title;
+
+    const progress = document.createElement('span');
+    progress.className = 'badge-progress';
+    progress.textContent = item.unlocked ? '已解锁' : `${item.value}/${item.target}`;
+
+    copy.append(name, progress);
+    badge.append(icon, copy);
+    if (fresh.some((entry) => entry.id === item.id)) badge.classList.add('is-new');
+    return badge;
+  });
+
+  el.badgeList.replaceChildren(...nodes);
+
+  if (announce) {
+    for (const item of fresh) {
+      queueBanner({ icon: item.icon, title: `解锁成就：${item.title}`, detail: item.hint });
+    }
+  }
+
+  return { statuses, fresh };
+}
+
+/* ------------------------------------------------------------------ */
 /* 设置                                                                */
 /* ------------------------------------------------------------------ */
 
@@ -592,17 +948,21 @@ function saveSettings(event) {
 /* 初始化                                                              */
 /* ------------------------------------------------------------------ */
 
-function renderAll() {
+function renderAll({ announceAchievements = false } = {}) {
   renderTimer();
   renderTasks();
   renderStats();
+  renderGarden();
+  const result = renderBadges({ announce: announceAchievements });
   updateThemeButton();
+  return result;
 }
 
 function init() {
   el.ringValue.style.strokeDasharray = `${RING_CIRCUMFERENCE} ${RING_CIRCUMFERENCE}`;
   setRingFraction(1);
 
+  renderThemeOptions();
   fillSettingsForm(settings);
   applyTheme();
   renderAll();
@@ -624,6 +984,53 @@ function init() {
     persistSettings();
     applyTheme();
     announce(`已切换到${settings.theme === 'dark' ? '深色' : '浅色'}主题`);
+  });
+
+  el.themeMenuToggle.addEventListener('click', () => {
+    setThemeMenuOpen(el.themeMenu.hidden);
+  });
+
+  el.themeOptions.addEventListener('click', (event) => {
+    const option = event.target.closest('.theme-option');
+    if (option) chooseTheme(option.dataset.theme);
+  });
+
+  el.themeMenu.addEventListener('keydown', (event) => {
+    const options = [...el.themeOptions.querySelectorAll('.theme-option')];
+    const current = options.indexOf(document.activeElement);
+
+    if (event.key === 'Escape') {
+      event.preventDefault();
+      setThemeMenuOpen(false);
+      el.themeMenuToggle.focus();
+      return;
+    }
+
+    if (event.key === 'Tab') {
+      setThemeMenuOpen(false);
+      el.themeMenuToggle.focus();
+      return;
+    }
+
+    if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
+      event.preventDefault();
+      const step = event.key === 'ArrowDown' ? 1 : -1;
+      options[(current + step + options.length) % options.length]?.focus();
+    } else if (event.key === 'Home') {
+      event.preventDefault();
+      options[0]?.focus();
+    } else if (event.key === 'End') {
+      event.preventDefault();
+      options.at(-1)?.focus();
+    }
+  });
+
+  document.addEventListener('click', (event) => {
+    if (el.themeMenu.hidden) return;
+    if (el.themeMenu.contains(event.target) || el.themeMenuToggle.contains(event.target)) {
+      return;
+    }
+    setThemeMenuOpen(false);
   });
 
   darkQuery.addEventListener('change', () => {
