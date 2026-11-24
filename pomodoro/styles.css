@@ -15,6 +15,9 @@
   --accent: #df4b34;
   --accent-soft: #fbe6e0;
   --accent-contrast: #fff8f5;
+  --mascot-leaf: #3d9a5f;
+  --plant-green: #4b9a68;
+  --plant-flower: #eeb04a;
   --shadow:
     0 24px 60px -32px rgba(74, 47, 36, 0.35),
     0 2px 6px rgba(74, 47, 36, 0.05);
@@ -40,6 +43,9 @@
   --accent: #f46a50;
   --accent-soft: #3a2620;
   --accent-contrast: #1c1613;
+  --mascot-leaf: #5bc9a0;
+  --plant-green: #5bc9a0;
+  --plant-flower: #f5c65f;
   --shadow:
     0 30px 70px -35px rgba(0, 0, 0, 0.85),
     0 2px 6px rgba(0, 0, 0, 0.3);
@@ -450,33 +456,284 @@ body {
   line-height: 1.05;
 }
 
+.companion {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  max-width: 100%;
+  margin: 0 auto;
+  text-align: left;
+}
+
+.mascot {
+  flex: none;
+  width: 42px;
+  height: 42px;
+  overflow: visible;
+  filter: drop-shadow(0 5px 7px rgba(74, 47, 36, 0.12));
+  animation: mascot-bob 3.6s ease-in-out infinite;
+}
+
+.mascot-body {
+  fill: var(--accent);
+}
+
+.mascot-shadow {
+  fill: rgba(74, 47, 36, 0.16);
+}
+
+.mascot-shine {
+  fill: rgba(255, 255, 255, 0.32);
+}
+
+.mascot-leaf {
+  fill: var(--mascot-leaf);
+}
+
+.mascot-stem {
+  fill: none;
+  stroke: var(--mascot-leaf);
+  stroke-width: 2.4;
+  stroke-linecap: round;
+}
+
+.mascot-cheeks ellipse {
+  fill: #ff8b6a;
+  opacity: 0.5;
+}
+
+.mascot-eyes-open {
+  transform-box: view-box;
+  transform-origin: 34px 40px;
+  animation: mascot-blink 5.6s infinite;
+}
+
+.mascot-eyes-open circle {
+  fill: #3a1712;
+}
+
+.mascot-eyes-closed path {
+  fill: none;
+  stroke: #3a1712;
+  stroke-width: 1.9;
+  stroke-linecap: round;
+}
+
+.mascot-eyes-star path {
+  fill: #ffdf8a;
+}
+
+.mascot-brows path {
+  fill: none;
+  stroke: #3a1712;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+}
+
+.mascot-mouth-smile path,
+.mascot-mouth-flat path {
+  fill: none;
+  stroke: #3a1712;
+  stroke-width: 1.9;
+  stroke-linecap: round;
+}
+
+.mascot-mouth-small ellipse {
+  fill: #3a1712;
+}
+
+.mascot-mouth-big path {
+  fill: #4a1a12;
+}
+
+.mascot-eyes-closed,
+.mascot-eyes-star,
+.mascot-brows,
+.mascot-mouth-flat,
+.mascot-mouth-small,
+.mascot-mouth-big {
+  display: none;
+}
+
+.timer-card[data-mood="focus"] .mascot-brows,
+.timer-card[data-mood="focus"] .mascot-mouth-flat {
+  display: inline;
+}
+
+.timer-card[data-mood="focus"] .mascot-mouth-smile {
+  display: none;
+}
+
+.timer-card[data-mood="sleepy"] .mascot-eyes-open,
+.timer-card[data-mood="relaxed"] .mascot-eyes-open,
+.timer-card[data-mood="party"] .mascot-eyes-open {
+  display: none;
+}
+
+.timer-card[data-mood="sleepy"] .mascot-eyes-closed,
+.timer-card[data-mood="relaxed"] .mascot-eyes-closed {
+  display: inline;
+}
+
+.timer-card[data-mood="sleepy"] .mascot-mouth-smile {
+  display: none;
+}
+
+.timer-card[data-mood="sleepy"] .mascot-mouth-small {
+  display: inline;
+}
+
+.timer-card[data-mood="party"] .mascot-eyes-star {
+  display: inline;
+}
+
+.timer-card[data-mood="party"] .mascot-mouth-smile {
+  display: none;
+}
+
+.timer-card[data-mood="party"] .mascot-mouth-big {
+  display: inline;
+}
+
+.timer-card[data-mood="party"] .mascot {
+  animation: mascot-hop 0.45s ease-in-out 4;
+}
+
+@keyframes mascot-bob {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-2px);
+  }
+}
+
+@keyframes mascot-blink {
+  0%,
+  92%,
+  100% {
+    transform: scaleY(1);
+  }
+  94% {
+    transform: scaleY(0.12);
+  }
+  96% {
+    transform: scaleY(1);
+  }
+}
+
+@keyframes mascot-hop {
+  0%,
+  100% {
+    transform: translateY(0) rotate(0);
+  }
+  35% {
+    transform: translateY(-5px) rotate(-5deg);
+  }
+  70% {
+    transform: translateY(-2px) rotate(4deg);
+  }
+}
+
 .hint {
-  max-width: 220px;
-  color: var(--muted);
-  font-size: 0.88rem;
+  position: relative;
+  max-width: 240px;
+  padding: 8px 13px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: var(--surface-soft);
+  color: var(--text);
+  font-size: 0.82rem;
+  line-height: 1.45;
+}
+
+.hint::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: -5px;
+  width: 9px;
+  height: 9px;
+  transform: translateY(-50%) rotate(45deg);
+  border-bottom: 1px solid var(--line);
+  border-left: 1px solid var(--line);
+  background: var(--surface-soft);
 }
 
 .cycle {
+  position: relative;
   display: flex;
-  gap: 10px;
-  margin: 18px 0 26px;
-  padding: 0;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin: 20px 0 24px;
+  padding: 0 4px;
   list-style: none;
 }
 
-.cycle-dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: var(--surface-strong);
-  transition:
-    background-color 0.2s ease,
-    transform 0.2s ease;
+.cycle::before {
+  content: "";
+  position: absolute;
+  right: 9%;
+  left: 9%;
+  top: 50%;
+  height: 2px;
+  transform: translateY(-50%);
+  border-radius: 2px;
+  background: linear-gradient(90deg, transparent, var(--line-strong) 10%, var(--line-strong) 90%, transparent);
 }
 
-.cycle-dot.is-done {
-  background: var(--mode-accent);
-  transform: scale(1.15);
+.cycle-tomato {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--surface);
+}
+
+.cycle-tomato svg {
+  width: 20px;
+  height: 20px;
+  overflow: visible;
+}
+
+.cycle-tomato .tomato-fruit {
+  fill: var(--surface-strong);
+  transition: fill 0.3s ease;
+}
+
+.cycle-tomato .tomato-leaf {
+  fill: var(--line-strong);
+  transition: fill 0.3s ease;
+}
+
+.cycle-tomato.is-done .tomato-fruit {
+  fill: var(--mode-accent);
+}
+
+.cycle-tomato.is-done .tomato-leaf {
+  fill: var(--mascot-leaf);
+}
+
+.cycle-tomato.is-done {
+  animation: tomato-ripe 0.5s ease;
+}
+
+@keyframes tomato-ripe {
+  0% {
+    transform: scale(0.7);
+  }
+  55% {
+    transform: scale(1.18);
+  }
+  100% {
+    transform: scale(1);
+  }
 }
 
 .controls {
@@ -816,6 +1073,344 @@ kbd {
   font-weight: 700;
 }
 
+/* ------------------------------------------------------------------ *
+ * 收获庆祝                                                            *
+ * ------------------------------------------------------------------ */
+.confetti {
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  overflow: hidden;
+  border-radius: inherit;
+  pointer-events: none;
+}
+
+.confetti-piece {
+  position: absolute;
+  top: -14px;
+  left: var(--x);
+  width: var(--size);
+  height: calc(var(--size) * 1.6);
+  border-radius: 2px;
+  background: var(--color);
+  opacity: 0;
+  animation: confetti-fall var(--duration) ease-in var(--delay) forwards;
+}
+
+@keyframes confetti-fall {
+  0% {
+    opacity: 0;
+    transform: translate3d(0, 0, 0) rotate(0deg);
+  }
+  10% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translate3d(var(--drift), 620px, 0) rotate(var(--rotate));
+  }
+}
+
+.harvest-banner {
+  position: fixed;
+  top: 18px;
+  left: 50%;
+  z-index: 60;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: max-content;
+  max-width: min(92vw, 400px);
+  padding: 10px 18px 10px 14px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--surface);
+  box-shadow: var(--shadow);
+  color: var(--text);
+  opacity: 0;
+  transform: translate(-50%, -14px) scale(0.96);
+  pointer-events: none;
+  transition:
+    opacity 0.22s ease,
+    transform 0.22s ease;
+}
+
+.harvest-banner.is-visible {
+  opacity: 1;
+  transform: translate(-50%, 0) scale(1);
+}
+
+.harvest-icon {
+  font-size: 1.35rem;
+  line-height: 1;
+}
+
+.harvest-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+}
+
+.harvest-copy strong {
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
+.harvest-copy span {
+  color: var(--muted);
+  font-size: 0.76rem;
+}
+
+/* ------------------------------------------------------------------ *
+ * 小花园与成就                                                        *
+ * ------------------------------------------------------------------ */
+.garden-panel {
+  margin-top: 24px;
+}
+
+.garden-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.garden-head h2 {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 700;
+}
+
+.garden-meta {
+  margin: 3px 0 0;
+  color: var(--muted);
+  font-size: 0.8rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.streak-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  flex: none;
+  padding: 7px 13px;
+  border-radius: 999px;
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-size: 0.8rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.garden-body {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 430px;
+  gap: 22px;
+  align-items: stretch;
+}
+
+.mini-garden {
+  position: relative;
+  display: flex;
+  align-items: flex-end;
+  gap: 4px;
+  min-height: 96px;
+  padding: 14px 14px 18px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  background:
+    radial-gradient(120% 90% at 50% 0%, var(--mode-soft), transparent 72%),
+    var(--surface-soft);
+}
+
+.mini-garden::before {
+  content: "";
+  position: absolute;
+  right: 14px;
+  bottom: 16px;
+  left: 14px;
+  height: 2px;
+  border-radius: 2px;
+  background: var(--line-strong);
+}
+
+.plant {
+  position: relative;
+  z-index: 1;
+  flex: none;
+  transform: rotate(var(--tilt, 0deg));
+  transform-origin: 50% 100%;
+}
+
+.plant svg {
+  display: block;
+  width: auto;
+  height: 54px;
+}
+
+.plant.is-new svg {
+  animation: plant-grow 0.55s ease-out;
+}
+
+.plant-stem {
+  fill: none;
+  stroke: var(--plant-green);
+  stroke-width: 2.2;
+  stroke-linecap: round;
+}
+
+.plant-leaf {
+  fill: var(--plant-green);
+}
+
+.plant-fruit {
+  fill: var(--accent);
+}
+
+.plant-shine {
+  fill: rgba(255, 255, 255, 0.38);
+}
+
+.plant-flower {
+  fill: var(--plant-flower);
+}
+
+.plant-flower-core {
+  fill: #8a5a2b;
+}
+
+.garden-empty {
+  margin: auto;
+  color: var(--muted);
+  font-size: 0.84rem;
+  text-align: center;
+}
+
+@keyframes plant-grow {
+  0% {
+    opacity: 0;
+    transform: scale(0.3);
+  }
+  60% {
+    opacity: 1;
+    transform: scale(1.08);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.badge-box {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.badge-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+.badge-head h3 {
+  margin: 0;
+  font-size: 0.92rem;
+  font-weight: 700;
+}
+
+.badge-list {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.badge {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  padding: 9px 10px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--surface-soft);
+}
+
+.badge-icon {
+  flex: none;
+  font-size: 1.2rem;
+  line-height: 1;
+  filter: grayscale(1);
+  opacity: 0.55;
+}
+
+.badge-copy {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.badge-name {
+  overflow: hidden;
+  color: var(--muted);
+  font-size: 0.74rem;
+  font-weight: 700;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.badge-progress {
+  color: var(--muted);
+  font-size: 0.64rem;
+  font-variant-numeric: tabular-nums;
+  opacity: 0.85;
+}
+
+.badge.is-unlocked {
+  border-color: var(--line-strong);
+  background: var(--surface);
+}
+
+.badge.is-unlocked .badge-icon {
+  filter: none;
+  opacity: 1;
+}
+
+.badge.is-unlocked .badge-name {
+  color: var(--text);
+}
+
+.badge.is-unlocked .badge-progress {
+  color: var(--accent);
+  font-weight: 700;
+  opacity: 1;
+}
+
+.badge.is-new {
+  animation: badge-pop 0.6s ease;
+}
+
+@keyframes badge-pop {
+  0% {
+    transform: scale(0.9);
+  }
+  50% {
+    transform: scale(1.06);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
 .footer {
   margin-top: 30px;
   color: var(--muted);
@@ -1027,6 +1622,24 @@ kbd {
   }
 }
 
+@media (max-width: 900px) {
+  .garden-body {
+    grid-template-columns: 1fr;
+  }
+
+  .badge-list {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .mini-garden {
+    min-height: 88px;
+  }
+
+  .plant svg {
+    height: 48px;
+  }
+}
+
 @media (max-width: 720px) {
   .page {
     padding: 18px 14px 30px;
@@ -1060,6 +1673,11 @@ kbd {
     width: min(78vw, 292px);
   }
 
+  .cycle {
+    gap: 4px;
+    margin: 18px 0 22px;
+  }
+
   .controls {
     width: 100%;
   }
@@ -1077,6 +1695,22 @@ kbd {
     grid-template-columns: 1fr;
   }
 
+  .garden-panel {
+    margin-top: 18px;
+  }
+
+  .garden-head {
+    align-items: center;
+  }
+
+  .mini-garden {
+    flex-wrap: wrap;
+    align-content: flex-end;
+    gap: 2px 4px;
+    min-height: 84px;
+    padding: 12px 12px 16px;
+  }
+
   .settings-grid {
     grid-template-columns: 1fr;
   }
@@ -1091,6 +1725,41 @@ kbd {
 
   .dialog-actions {
     flex-wrap: wrap;
+  }
+}
+
+@media (max-width: 480px) {
+  .badge-list {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .harvest-banner {
+    top: 12px;
+    padding-right: 14px;
+  }
+
+  .garden-head {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  .mini-garden {
+    display: grid;
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    align-items: end;
+    align-content: end;
+    justify-items: center;
+    gap: 2px 6px;
+  }
+
+  .garden-empty {
+    grid-column: 1 / -1;
+    align-self: center;
+  }
+
+  .plant svg {
+    height: 44px;
   }
 }
 
